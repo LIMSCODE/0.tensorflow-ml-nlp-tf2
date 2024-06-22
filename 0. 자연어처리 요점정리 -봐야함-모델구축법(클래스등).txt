@@ -1,0 +1,149 @@
+
+//클래스 상속
+class MyModel
+  def __init__(self, hidden_dinmention ..) :
+    super(MyModel, self).__init__(name='my model')
+    self.dense_layer1 = layers.Dense(hidden_dimension, activation = 'relu')	//Dense함수호출후 괄호에init값지정 (20p)
+  def call(self, inputs):
+    x=self.dense_layer1(inputs)		//init지정한 Dense함수에 inputs값 넣음
+
+
+////////////1권 (모델구현방법 3가지) (40p)
+1. Sequential API(간단한레이어구조)
+model = tf.keras.Sequential()
+mode.add(layers.Dense(64,activation='relu')
+
+2. Functional API(입력값받는 Input모듈선언)
+inputs = tf.keras.Input(shape=(32,))
+x = layers.Dense(64,activation='relu')(inputs)	//Dense:신경망 
+x = layers.Dense(64,activation='relu')(x)
+
+3.Custom Layer (사용자정의층으로 정의)  
+from tensorflow.keras import layers 
+class CustomLayer(layers.Layer);
+  def __init__(self, hidden_dimension):		// 객체생성시 저장할수있는 인자 #####
+     self.hidden_dimension = hidden_dimension
+     super(CustomLayer, self).__init__()
+  def build(self, input_shape):
+     self.dense_layer1 = layers.Dense(self.hidden_dimension, activation = 'relu')	 // layers.Dense 괄호안에 init값지정해서사용 #####
+  def call(self, inputs):			// __init__에서 정의한값 호출
+     x = self.dense_layer1(inputs)
+     x = self.dense_layer2(x)
+     return self.dense_layer3(x)
+
+model = tf.keras.Sequential()
+model.add(CustomLayer(64,64,10))  
+
+4. Subclassing방법
+class MyModel(tf.keras.Model) : 
+  def __init__(self, hidden_dimension):			// 객체생성시 저장할수있는 인자 #####
+    super(MyModel, self).__init__(name='my model')
+    self.dense_layer1 = layers.Dense(hidden_dimension, activation = 'relu')	// layers.Dense 괄호안에 init값지정해서사용 #####
+
+  def call(self, inputs):				// __init__에서 정의한값 호출
+    x=self.dense_layer1(inputs)
+    x=self.dense_layer2(x)
+    return self.dense_layer3(x)
+
+//추가 17p 자연어처리 개발준비
+tf.keras.layers.Dense    //Dense:신경망 /init: 객체생성시 저장할수있는 인자 
+/tf.keras.layers.Dense( init값지정해서사용 ) 형태로사용
+tf.kearas.layers.Input 
+tf.keras.layers.Dropout //과적합해결
+tf.keras.layers.Conv1D  //합성곱연산 /똑같이 init에서값지정형태
+tf.keras.layers.MaxPool1D //풀링 (피처맵의크기줄이거나 주요특증뽑아내기위해 합성곱이후에적용함)
+
+
+//35p. 모델학습 (케라스내장api사용) #####
+### 학습과정 정의(model.compile)
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+### fit메서드호출(데이터들이 모델통과하며 학습진행 /학습진행되면서 각 에폭당 모델의 성능(손실함수, 정확도)이 출력됨)
+model.fit(x_train, y_train, batch_size=64, epochs=3, validation_data = (x_val, y_val))      //evaluate메소드 따로호출안하고 검증데이터도추가가능
+
+//37p. 더미데이터를 활용한 감정분석모델링 (텍스트의 긍정부정 예측모델)  / 뒤에서또설명함 ###
+입력값은 임베딩벡터로변환 /각벡터 평균해서 하나의벡터로 만듬
+은닉층거친후 결과값뽑음 /결과값에 시그모이드함수적용해 0과1사이값 구함
+전처리과정(생략) (samples를 벡터화)
+samples = ['너예뻐 보인다','나 오늘 짜증나']
+model = tf.keras.Sequential()
+model.add(layers.Dense(hidden_dimension, activation='relu')
+model.compile(optimizer=,loss=,metrix=)
+model.fit(input_sequences, labels, epochs = num_epochs, batch_size = batch_size )
+
+
+=========================
+
+////////////2권  ( 자연어처리 알고리즘 종류임 - 감정분류, 텍스트유사도 등등 ) 
+model.evaluate //분류
+model.predict //유사도
+output(답변) = model.inference(text(질문)) //챗봇
+
+//6장 ( 트랜스포머, seq2seq )
+
+=========================
+//////////3권 (7장. 사전학습모델)
+//개요 (357p ~ 371p)
+
+사전학습모델 : 다른문제에 학습시킨 가중치를 활용함
+사전학습한 가중치를 활용해 하위문제를 학습하는방법
+1.특징기반 -하습한 임베딩특징을 학습하고자하는 모델의 임베딩특징으로 활용함
+2.미세조정-하위문제를 위한 최소한의 가중치 추가해서 모델을 추가학습(미세조정)
+
+//버트의 사전학습과정
+1. 마스크언어모델 -양방향성으로 모델학습위한 방법 /15%단어 마스킹후 예측하게함
+2.다음문장예측 /50%확률로 다음문장을 문장을 입력값으로 넣고, 나머지 50%확률로 다른문서의 문장을 입력값으로 넣음
+시작시[CLS]/끝에[SEP]/[MASK]로가림
+//버트를 활용해 문장분류, 자연어추론, 개체명인식, 텍스트유사도, 기계독해 문제 해결 -허깅페이스의 트랜스포머라이브러리 사용
+https://github.com/huggingface/transformers
+//버트에 필요한 입력값형태로 데이터변환하지않고 허깅페이스 토크나이저 이용
+https://github.com/huggingface/tokenizers
+
+//버트활용 기계독해모델 (3권 455p)
+TFBERTQuestionAnswering(tf.keras.Model) (def __init__, def call 로 정답토큰의 시작, 끝위치를 맞춘다.
+korquad_model=TFBERTQuestionAnswering (손실값, 옵티마이저-최적화함수 선언)
+학습환경설정 korquad_model.compile 
+학습 history=korquad_model.fit(x_train, y_tain)
+시각화 plot_graphs(history
+에폭증가함에따라 손실감소하므로 학습이 올바른방향으로 진행된다 /EM값확인
+
+
+=======================
+///////////3권 (8장. GPT) (499p)
+//GPT1 : 버트와 공통점 : 트랜스포머구조 / 차이점 : 버트는 트랜스포머의 인코더구조만사용, gPT1은 디코더구조만사용
+버트와달리 GPT1은 앞단어를 활용해 다음단어예측방법으로 사전학습한다
+버트는 사전학습에서만 언어모델의 손실값사용 /GPT1은 본학습시에도 실제학습해야하는 문제의 손실값 + 언어모델의 손실값 학습
+
+//GPT2는 GPT1에비해 큰모델크기임 / BPE(Byte Pair Encoding)방식으로 텍스트를 나눠 입력값으로 넣음
+gpt_model.compile
+history=gpt_mode.fit
+gpt_model.gpt2.save_pretrained
+504p loaded_gpt_model = GPT2Model  
+506p generate_sent
+514p generate_sent('이떄', gpt_model, greedy=True)
+
+//GPT2활용한 한국어 자연어추론모델 523~530p/530~540p
+//GPT3 541p
+미세조정의 한계 : 사전학습모델이 특정문제에 국한된다. 
+메타학습방법론으로 해결한다. 방대한데이터로 가중치를 사전학습하고, 학습된모델의 능력활용해서 특정문제에 적용한다.
+메타학습방법론에서는 새로운문제에 미세조정하여 가중치업데이트하는게아닌 
+사전학습과정에서 학습된 정보만 활용해서 문제를 해결한다
+문제해결위한예씨를 몇개사용했는지에따라 제로샷러닝, 원샷러닝,푸샷러닝 (각 방법은 0,1,n개의 예시를활용함)
+푸샷에서는 문제해결위해 n개의예시를 언어모델에 제공하고 그예시를활용해서 문제를해결한다.
+
+//퓨샷러닝 554p : 메타학습의한종류로, 소량의데이터만으로 처음보는문제를 풀수있는 접근방식이다.
+자연어처리의 다양한방식(분류,유사도,요약)등의 문제에따라 매번미세조정해야하는 한계
+모델에 문제설명,예제,프롬프트라는 정보를 전달한다. GPT3가등장해 퓨샷러닝기법을 번역 등에 적용해 성공적 결과냄
+
+//피튜닝 565p
+사전학습언어모델에 대해 프롬프트 역할을 하기위해 연속적 가중치를 만들고 경사하강법으로 학습해 프롬프트검색을 대체한다
+
+
+
+
+
+
+
+
+
+
+
